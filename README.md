@@ -2,9 +2,9 @@ Naive IMGUI for rendering and interaction. Don't actually "render" but receive a
 
 ## Base Concept
 
-The remote renderer, running on the server, receives the camera from the remote viewer and sends the rendering result to the remote viewer.
+The renderer, running on the server, receives the camera from the remote viewer and sends the rendering result to the remote viewer.
 
-On the other hand, the remote reviewer, running on the client, receives the image from the remote renderer and sends the camera information.
+On the other hand, the viewer, running on the client, receives the image from the remote renderer and sends the camera information.
 
 
 
