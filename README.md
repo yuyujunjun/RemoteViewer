@@ -1,7 +1,5 @@
 Naive IMGUI for rendering and interaction. Don't actually "render" but receive an image from a third-party remote renderer (e.g. nvdiffrast or gaussian splatting).
 
-The code is adapted from https://github.com/limacv/GaussianSplattingViewer/tree/main
-
 ## Base Concept
 
 The remote renderer, running on the server, receives the camera from the remote viewer and sends the rendering result to the remote viewer.
