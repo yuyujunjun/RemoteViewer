@@ -19,7 +19,7 @@ Just run python start.py.
 #### Real-time rendering
 
 ```python
-remote_viewer = RemoteViewer("10.76.0.79",12345) # set connection info
+remote_viewer = RemoteViewer("xx.xx.xx.xx",12345) # set connection info
 while True:
     remote_viewer.require_camera_from_remote(True) # ask for camera information
     remote_info = remote_viewer.read() # read from the network, it returns a dict
@@ -35,7 +35,7 @@ while True:
 #### Display an image
 
 ```python
-remote_viewer = RemoteViewer("10.76.0.79",12345) # set connection info
+remote_viewer = RemoteViewer("xx.xx.xx.xx",12345) # set connection info
 remote_viewer.send_images(image,single=True) # it will connect the client automatically and tell it that only one image will be sent, so don't wait for more images.
 ```
 
@@ -45,9 +45,7 @@ Note that after executing this function, the client will read no more data after
 
 Regarding the viewer,  I use imgui: image for presenting the image from the server. You can change it freely.
 
-You can also change the information communicated between the server and the client. 
-
-Just ensure that the ```socker.recv()``` in ```read()``` function will hang up until receive the data.
+You can also change the information communicated between the server and the client. Note I use a read() function to receive all data. The send() function can be arbitrary. Just be aware that the ```socker.recv()``` in ```read()``` function will hang up until receive the data.
 
 
 
