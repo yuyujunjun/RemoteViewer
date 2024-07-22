@@ -14,12 +14,28 @@ import traceback
 import socket
 import json
 import pickle
-from m_scripts.camera_utils import GS_Cam
 import zlib
 def b2i(b):
     return int.from_bytes(b, 'little')
 def i2b(i):
     return int(i).to_bytes(4,"little")
+# MiniCam for Gaussian Splatting. Transpose matrix because gaussian splatting uses column major matrix while the tensor is row major.
+class GS_Cam:
+    def __init__(self, width, height, fovy, fovx, znear, zfar, world_view_transform, full_proj_transform):
+        self.image_width = width
+        self.image_height = height
+        self.FoVy = fovy
+        self.FoVx = fovx
+        self.znear = znear
+        self.zfar = zfar
+        self.world_view_transform = world_view_transform.t()
+        self.full_proj_transform = full_proj_transform.t()
+        view_inv = torch.inverse(self.world_view_transform)
+        self.camera_center = view_inv[3][:3]
+    def get_proj_matrix(self):
+        return self.full_proj_transform.t()
+    def get_mv_matrix(self):
+        return self.world_view_transform.t()
 # Peer: head 0: image, 1: send_cameras, 2: don't send cameras
 # head 0: camera
 class RemoteViewer():
