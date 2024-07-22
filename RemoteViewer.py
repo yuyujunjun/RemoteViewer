@@ -15,6 +15,7 @@ import socket
 import json
 import pickle
 from m_scripts.camera_utils import GS_Cam
+import zlib
 def b2i(b):
     return int.from_bytes(b, 'little')
 def i2b(i):
@@ -38,9 +39,10 @@ class RemoteViewer():
     def i_dont_send_more_data(self):
         self.socker.sendall(i2b(self.peer_status["dont receive"]))
     def require_camera_from_remote(self, status):
-        if self.recieve_camera!=status and self.try_connect():
+        if self.recieve_camera!=status:
             self.recieve_camera = status
-            self.send_current_state()
+            if self.try_connect():
+                self.send_current_state()
 
     def try_connect(self):
         if self.connect_success == False:
@@ -84,13 +86,17 @@ class RemoteViewer():
                 print("send_images")
                 import numpy as np
                 image = np.array(image)
-                image_bytes = image.astype(np.uint8).tobytes()
+                img_str = pickle.dumps(image)
+                image_bytes = zlib.compress(img_str,zlib.Z_BEST_COMPRESSION)
+                length = len(image_bytes)
+                # image_bytes = image.astype(np.uint8).tobytes()
                 width,height = image.shape[0].to_bytes(4,"little"),image.shape[1].to_bytes(4,"little")
                 self.socker.sendall(i2b(self.peer_status["image"]))
-                self.socker.sendall(width+height)
+                self.socker.sendall(i2b(length)+width+height)
                 self.socker.sendall(image_bytes)
                 if single:
                     self.i_dont_send_more_data()
+                print("send done")
             except Exception as e:
                 # assume the connection is broken
                 self.reset_connect()

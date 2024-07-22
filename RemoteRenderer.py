@@ -11,10 +11,13 @@
 import traceback
 import socket
 import json
+import zlib
+import pickle
 def b2i(b):
     return int.from_bytes(b, 'little')
 def i2b(i):
     return int(i).to_bytes(4,"little")
+debug = 0
 # head 0: image, 1: send_cameras, 2: don't send cameras
 class RemoteRenderer():
     def __init__(self):
@@ -77,12 +80,14 @@ class RemoteRenderer():
             return {"status": 0}
     def read_image(self):
         # message = self.read()
-        size = self.conn.recv(8)
-        width,height = b2i(size[:4]),b2i(size[4:])
-        message_length = width*height*3
+        size = self.conn.recv(12)
+        message_length, width,height = b2i(size[:4]),b2i(size[4:8]),b2i(size[8:12])
+        #message_length = width*height*3
         data_bytes = self.read_buffer(message_length)
+        img_str = zlib.decompress(data_bytes)
+        img_arr = pickle.loads(img_str)
         import numpy as np
-        img_arr = np.frombuffer(data_bytes,dtype=np.uint8)
+        #img_arr = np.frombuffer(data_bytes,dtype=np.uint8)
         img_arr = img_arr.reshape((width,height,3))
         return img_arr
 
@@ -97,10 +102,11 @@ class RemoteRenderer():
 
     def send_cameras(self,message_bytes):
         has_con = self._get_a_renderer()
-
+        global debug
         if has_con and self.can_send:
             try:
-                print(self.can_send)
+                print("send",debug,self.can_send)
+                debug+=1
                 conn = self.conn
                 conn.sendall(i2b(0)) # 0: camera
                 conn.sendall(len(message_bytes).to_bytes(4, 'little'))
