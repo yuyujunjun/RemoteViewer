@@ -62,7 +62,7 @@ class RemoteRenderer():
                 ret_dic = {"status":1}
                 if head==0:
                     self.can_read = True
-                    ret_dic['image'] = self.read_image()#{"image":self.read_image()}
+                    ret_dic['image']= self.read_image()#{"image":self.read_image()}
                 elif head==1:
                     self.can_send = True
                     ret_dic['send'] = True
@@ -80,16 +80,21 @@ class RemoteRenderer():
             return {"status": 0}
     def read_image(self):
         # message = self.read()
-        size = self.conn.recv(12)
-        message_length, width,height = b2i(size[:4]),b2i(size[4:8]),b2i(size[8:12])
-        #message_length = width*height*3
-        data_bytes = self.read_buffer(message_length)
-        img_str = zlib.decompress(data_bytes)
-        img_arr = pickle.loads(img_str)
-        import numpy as np
-        #img_arr = np.frombuffer(data_bytes,dtype=np.uint8)
-        img_arr = img_arr.reshape((width,height,3))
-        return img_arr
+        nums = b2i(self.conn.recv(4))
+        images_attr = []
+        for i in range(nums):
+            size = self.conn.recv(12)
+            message_length, width,height = b2i(size[:4]),b2i(size[4:8]),b2i(size[8:12])
+            print(message_length,width,height)
+            #message_length = width*height*3
+            data_bytes = self.read_buffer(message_length)
+            img_str = zlib.decompress(data_bytes)
+            img_arr = pickle.loads(img_str)
+            import numpy as np
+            #img_arr = np.frombuffer(data_bytes,dtype=np.uint8)
+            img_arr = img_arr.reshape((width,height,3))
+            images_attr.append(img_arr)
+        return images_attr
 
     def read_buffer(self,messageLength):
         img_arr_bytes = b''

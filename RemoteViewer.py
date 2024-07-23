@@ -14,28 +14,12 @@ import traceback
 import socket
 import json
 import pickle
+from m_scripts.camera_utils import GS_Cam
 import zlib
 def b2i(b):
     return int.from_bytes(b, 'little')
 def i2b(i):
     return int(i).to_bytes(4,"little")
-# MiniCam for Gaussian Splatting. Transpose matrix because gaussian splatting uses column major matrix while the tensor is row major.
-class GS_Cam:
-    def __init__(self, width, height, fovy, fovx, znear, zfar, world_view_transform, full_proj_transform):
-        self.image_width = width
-        self.image_height = height
-        self.FoVy = fovy
-        self.FoVx = fovx
-        self.znear = znear
-        self.zfar = zfar
-        self.world_view_transform = world_view_transform.t()
-        self.full_proj_transform = full_proj_transform.t()
-        view_inv = torch.inverse(self.world_view_transform)
-        self.camera_center = view_inv[3][:3]
-    def get_proj_matrix(self):
-        return self.full_proj_transform.t()
-    def get_mv_matrix(self):
-        return self.world_view_transform.t()
 # Peer: head 0: image, 1: send_cameras, 2: don't send cameras
 # head 0: camera
 class RemoteViewer():
@@ -95,21 +79,27 @@ class RemoteViewer():
                 return {"status":0}
         return {"status":0}
 
-    def send_images(self,image,single=False): #W
+    def send_images(self,images:list,single=False): #W
         has_viewer = self.try_connect()
         if has_viewer:
             try:
+                if isinstance(images,list)==False:
+                    images = [images]
                 print("send_images")
                 import numpy as np
-                image = np.array(image)
-                img_str = pickle.dumps(image)
-                image_bytes = zlib.compress(img_str,zlib.Z_BEST_COMPRESSION)
-                length = len(image_bytes)
-                # image_bytes = image.astype(np.uint8).tobytes()
-                width,height = image.shape[0].to_bytes(4,"little"),image.shape[1].to_bytes(4,"little")
-                self.socker.sendall(i2b(self.peer_status["image"]))
-                self.socker.sendall(i2b(length)+width+height)
-                self.socker.sendall(image_bytes)
+                num = len(images)
+                self.socker.sendall(i2b(self.peer_status["image"])+i2b(num))
+                for i in range(num):
+                    image = images[i]
+                    image = np.array(image)
+                    img_str = pickle.dumps(image)
+                    image_bytes = zlib.compress(img_str,zlib.Z_BEST_COMPRESSION)
+                    length = len(image_bytes)
+                    print(length)
+                    # image_bytes = image.astype(np.uint8).tobytes()
+                    width,height = image.shape[0].to_bytes(4,"little"),image.shape[1].to_bytes(4,"little")
+                    self.socker.sendall(i2b(length)+width+height)
+                    self.socker.sendall(image_bytes)
                 if single:
                     self.i_dont_send_more_data()
                 print("send done")

@@ -55,7 +55,7 @@ class Camera:
         self.h = h
         self.w = w
         self.fovy = 60 / 180 * np.pi
-        self.position = np.array([0.0, 0.0, -3.0]).astype(np.float32)
+        self.position = np.array([0.0, 0.0, -2.]).astype(np.float32)
         self.target = np.array([0.0, 0.0, 0.0]).astype(np.float32)
         self.up = -np.array([0.0, 1.0, 0.0]).astype(np.float32)
         self.yaw = np.pi / 2
@@ -250,22 +250,27 @@ class Interface():
         glfw.set_scroll_callback(window, wheel_callback)
         glfw.set_key_callback(window, key_callback)
         self.window = window
-        self.create_empty_image()
+        self.image_ids = []
+        self.initialize_state=[]
+       # self.create_empty_image()
        # self.send_camera = False
     def create_empty_image(self):
         from OpenGL.GL import GL_TEXTURE_2D,glTexParameteri,GL_TEXTURE_MAG_FILTER,GL_TEXTURE_MIN_FILTER,GL_LINEAR
-        self.image_id = gl.glGenTextures(1)
+        image_id = gl.glGenTextures(1)
         self.textureData = None
-        self.image_initialize = False
-        gl.glBindTexture(gl.GL_TEXTURE_2D,self.image_id)
+        self.initialize_state.append(False)
+        gl.glBindTexture(gl.GL_TEXTURE_2D,image_id)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        self.image_ids.append(image_id)
     def process_remote(self):
         remote_info = self.remote_renderer.read()
         if remote_info['status']==0:
             return False
         if ("image" in remote_info):
-            self.set_image(remote_info['image'])
+            images = remote_info["image"]
+            for i,img in enumerate(images):
+                self.set_image(img,i)
             return True
         if("send" in remote_info):
             return False
@@ -288,10 +293,11 @@ class Interface():
             if self.remote_renderer.can_read or isread:
                 self.remote_renderer.can_read = True
                 self.process_remote()
-            if self.image_initialize:
-                imgui.begin("Render result")
-                imgui.image(self.image_id, 512, 512)
-                imgui.end()
+            for i in range(len(self.initialize_state)):
+                if self.initialize_state[i]:
+                    imgui.begin(f"window {i}")
+                    imgui.image(self.image_ids[i], 512, 512)
+                    imgui.end()
             if(self.remote_renderer.can_send):
                 self.send_camera_to_remote()
             gl.glClearColor(1.0, 1.0, 1.0, 1)
@@ -304,13 +310,17 @@ class Interface():
         self.impl.shutdown()
         glfw.terminate()
         self.remote_renderer.socker.close()
-    def set_image(self,image):
+    def set_image(self,image,window_id):
         if isinstance(image,np.ndarray):
             # image = image * 255.
             width,height = image.shape[-2],image.shape[-3]
-        self.textureData = image
-        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, width, height, 0, gl.GL_RGB,gl.GL_UNSIGNED_BYTE, self.textureData)
-        self.image_initialize=True
+        textureData = image
+        if window_id<len(self.image_ids):
+            gl.glBindTexture(gl.GL_TEXTURE_2D,self.image_ids[window_id])
+        else:
+            self.create_empty_image()
+        gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, width, height, 0, gl.GL_RGB,gl.GL_UNSIGNED_BYTE, textureData)
+        self.initialize_state[window_id]=True
     def get_view_matrix(self):
         return g_camera.get_view_matrix()
 
