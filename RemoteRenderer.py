@@ -28,7 +28,8 @@ class RemoteRenderer():
         self.can_send = False
         self.can_read = True
     def reset(self):
-        self.conn.close()
+        if self.conn!=None:
+            self.conn.close()
         self.conn = None
     def begin_listen(self):
         try:
@@ -49,6 +50,7 @@ class RemoteRenderer():
                 self.conn.settimeout(None)
                 return True
             except Exception as inst:
+                self.reset()
                 return False
         else:
             return True
@@ -59,17 +61,21 @@ class RemoteRenderer():
                 conn = self.conn
                 head = conn.recv(4) # may stuck
                 head = int.from_bytes(head,"little")
-                ret_dic = {"status":1}
                 if head==0:
+                    self.reset()
+                print(head)
+                ret_dic = {"status":1}
+                if head==1:
                     self.can_read = True
+                    print("read image")
                     ret_dic['image']= self.read_image()#{"image":self.read_image()}
-                elif head==1:
+                elif head==2:
                     self.can_send = True
                     ret_dic['send'] = True
-                elif head==2:
+                elif head==3:
                     self.can_send = False
                     ret_dic['send'] = False
-                elif head==3:
+                elif head==4:
                     self.can_read = False
                 return ret_dic
             except Exception as e:

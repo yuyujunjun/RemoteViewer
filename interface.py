@@ -54,8 +54,8 @@ class Camera:
         self.zfar = 1000
         self.h = h
         self.w = w
-        self.fovy = 60 / 180 * np.pi
-        self.position = np.array([0.0, 0.0, -2.]).astype(np.float32)
+        self.fovy = 20 / 180 * np.pi
+        self.position = np.array([0.0, 0.0, -5.6]).astype(np.float32)
         self.target = np.array([0.0, 0.0, 0.0]).astype(np.float32)
         self.up = -np.array([0.0, 1.0, 0.0]).astype(np.float32)
         self.yaw = np.pi / 2
@@ -289,9 +289,11 @@ class Interface():
             imgui.new_frame()
             imgui.begin("control panel")
             isread = imgui.button("read remote")
-            imgui.end()
-            if self.remote_renderer.can_read or isread:
+            if isread:
                 self.remote_renderer.can_read = True
+            imgui.end()
+            if self.remote_renderer.can_read:
+          
                 self.process_remote()
             for i in range(len(self.initialize_state)):
                 if self.initialize_state[i]:

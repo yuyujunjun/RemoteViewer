@@ -28,7 +28,7 @@ class RemoteViewer():
         self.port = port
         self.recieve_camera = False
         self.contiunous_mode = False
-        self.peer_status = {"image":0,"send":1,"dont send":2,"dont receive":3}
+        self.peer_status = {"image":1,"send":2,"dont send":3,"dont receive":4}
         self.connect_success = False
     def reset_connect(self):
         self.connect_success = False
@@ -85,7 +85,7 @@ class RemoteViewer():
             try:
                 if isinstance(images,list)==False:
                     images = [images]
-                print("send_images")
+                # print("send_images")
                 import numpy as np
                 num = len(images)
                 self.socker.sendall(i2b(self.peer_status["image"])+i2b(num))
@@ -95,14 +95,13 @@ class RemoteViewer():
                     img_str = pickle.dumps(image)
                     image_bytes = zlib.compress(img_str,zlib.Z_BEST_COMPRESSION)
                     length = len(image_bytes)
-                    print(length)
                     # image_bytes = image.astype(np.uint8).tobytes()
                     width,height = image.shape[0].to_bytes(4,"little"),image.shape[1].to_bytes(4,"little")
                     self.socker.sendall(i2b(length)+width+height)
                     self.socker.sendall(image_bytes)
                 if single:
                     self.i_dont_send_more_data()
-                print("send done")
+                # print("send done")
             except Exception as e:
                 # assume the connection is broken
                 self.reset_connect()
