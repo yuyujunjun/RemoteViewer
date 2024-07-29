@@ -2,13 +2,13 @@ Naive IMGUI for rendering and interaction. Don't actually "render" but receive a
 
 
 
-## Base Concept
+## Basic Concept
 
 The renderer, running on the server, receives the camera from the remote viewer and sends the rendering result to the remote viewer.
 
 On the other hand, the viewer, running on the client, receives the image from the remote renderer and sends the camera information.
 
-From the renderer, you can send images as a list, and the viewer will create multiple windows for displaying these images, with each window showing one image.
+From the renderer, you can send images as a list, and the viewer will create multiple windows to display these images, each showing one image.
 
 ![image-20240725191707531](Assets/image-20240725191707531.png)
 
@@ -22,7 +22,7 @@ After sending lists of images from the renderer, the viewer can continuously rea
 
 ### Remote Viewer
 
-Running on the client, for displaying images.
+It is running on the client, for displaying images.
 
 Just run ```python start.py. ```
 
@@ -72,7 +72,7 @@ Note that after executing this function, the client will read no more data after
 
 Regarding the viewer,  I use imgui: image for presenting the images. You can change it freely.
 
-You can also change the information that needs to be transferred between the server and the client. The only recommendation is to use the ```read()``` function to receive all types of data. Otherwise, you need to re-code the framework (It is still easy for most of people).
+You can also change the information that needs to be transferred between the server and the client. The only recommendation is to use the ```read()``` function to receive all types of data. Otherwise, you need to re-code the framework (It is still easy for most people).
 
 Just be aware that the ```socker.recv()``` in ```read()``` function will hang up until receiving the data. 
 
