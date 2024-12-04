@@ -1,4 +1,4 @@
-Naive IMGUI for rendering and interaction. Don't actually "render" but receive an image from a third-party remote renderer (e.g. nvdiffrast or gaussian splatting).
+Naive IMGUI for rendering and interaction. Note: It doesn't actually "render" but receives an image from a third-party remote renderer (e.g. nvdiffrast or gaussian splatting).
 
 
 
@@ -70,7 +70,7 @@ Note that after executing this function, the client will read no more data after
 
 ### More
 
-Regarding the viewer,  I use imgui: image for presenting the images. You can change it freely.
+Regarding the viewer,  I use imgui: image to present the images. You can change it freely.
 
 You can also change the information that needs to be transferred between the server and the client. The only recommendation is to use the ```read()``` function to receive all types of data. Otherwise, you need to re-code the framework (It is still easy for most people).
 
